@@ -20,17 +20,12 @@ export function Profile() {
   };
 
   return (
+    
     <React.Fragment>
       <h2>Profile</h2>
 
       <div className={'content-block dx-card responsive-paddings'}>
         <div className={'form-avatar'}>
-          <img
-            alt={''}
-            src={`https://js.devexpress.com/Demos/WidgetsGallery/JSDemos/${
-              employee.Picture
-            }`}
-          />
         </div>
         <span>{notes}</span>
       </div>

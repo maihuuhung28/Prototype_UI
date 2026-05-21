@@ -5,12 +5,12 @@ export const navigation = [
     icon: 'home'
   },
   {
-    text: 'Examples',
+    text: 'Production Plan Simulation',
     icon: 'folder',
     items: [
       {
         text: 'Profile',
-        path: '/profile'
+        path: '/dashboard'
       },
       {
         text: 'Tasks',

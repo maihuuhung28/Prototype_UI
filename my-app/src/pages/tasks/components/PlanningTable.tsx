@@ -1,71 +1,102 @@
-import React from 'react';
-import DataGrid, { Column, Scrolling, Selection } from 'devextreme-react/data-grid';
-import { planningLines } from '../data/planning.data';
+import React, { useMemo } from 'react';
+import Gantt, { 
+  Tasks, Resources, ResourceAssignments, 
+  Column, Editing, Toolbar, Item, Validation 
+} from 'devextreme-react/gantt';
+import { planningData } from '../data/planning.data';
 
 export function PlanningTable({ onLineSelectionChange }: any) {
-  
-  // Hàm render dải màu cho Timeline
-  const renderTimelineCell = (cellData: any, dayIndex: number) => {
-    const schedule = cellData.data.schedules?.find(
-      (s: any) => dayIndex >= s.startDay && dayIndex <= s.endDay
-    );
 
-    if (!schedule) return null;
+  // Chuyển đổi dữ liệu từ file planning.data sang cấu trúc Gantt
+  const ganttData = useMemo(() => {
+    const tasks: any[] = [];
+    const resources: any[] = [];
+    const assignments: any[] = [];
+    let taskIdCounter = 1;
 
-    // Chỉ hiển thị text ở ô đầu tiên của dải màu
-    const isFirstCell = dayIndex === schedule.startDay;
+    // Lấy mốc "date1" trong ảnh là ngày 10/04/2026
+    const baseDate = new Date(2026, 3, 10); 
 
-    
+    planningData.forEach((line, index) => {
+      const resourceId = index + 1;
+      
+      // Tạo Resource (Tương ứng cột LINE trong ảnh: EE01, EE02...)
+      resources.push({
+        id: resourceId,
+        text: line.lineName
+      });
 
-    return (
-      <div style={{
-        backgroundColor: schedule.color,
-        color: '#000',
-        height: '100%',
-        margin: '-8px -10px', // Tràn ra khít ô
-        display: 'flex',
-        alignItems: 'center',
-        paddingLeft: '5px',
-        fontSize: '11px',
-        fontWeight: 500,
-        borderRight: dayIndex === schedule.endDay ? 'none' : '1px solid rgba(0,0,0,0.1)'
-      }}>
-        {isFirstCell ? schedule.style : ''}
-      </div>
-    );
-  };
+      line.tasks.forEach((t) => {
+        const taskId = taskIdCounter++;
+        
+        // Tính Start/End dựa trên startDay/endDay (1-10)
+        const start = new Date(baseDate);
+        start.setDate(baseDate.getDate() + (t.startDay - 1));
+
+        const end = new Date(baseDate);
+        end.setDate(baseDate.getDate() + t.endDay);
+
+        tasks.push({
+          id: taskId,
+          title: t.styleInfo,
+          start: start,
+          end: end,
+          color: t.color,
+          lineType: line.lineType,
+          priLine: line.priLine
+        });
+
+        // Gán Task vào đúng Line
+        assignments.push({
+          id: taskId,
+          taskId: taskId,
+          resourceId: resourceId
+        });
+      });
+    });
+
+    return { tasks, resources, assignments };
+  }, []);
 
   return (
-    <div className="grid-container planning-table">
-
-      <DataGrid
-        dataSource={planningLines}
-        showBorders
-        showColumnLines={true}
-        showRowLines={true}
-        height={300}
-        columnAutoWidth={false}
-        onSelectionChanged={(e) => onLineSelectionChange(e.selectedRowsData)}
+    <div className="grid-container planning-gantt">
+      <Gantt
+        taskListWidth={350} //độ phân giải
+        scaleType="days" //Đo thời gian theo ngày
+        height={500}
+        taskTitlePosition="inside"
+        onSelectionChanged={(e) => onLineSelectionChange?.(e.selectedRowKey)}
+        
+        //Thanh Bar
+        taskContentTemplate={(item: any) => {
+          return `
+            <div class="custom-task-bar" style="background-color: ${item.taskData.color}; height: 100%; display: flex; align-items: center; padding: 0 10px; color: #333; font-weight: 500; font-size: 11px; border: 1px solid rgba(0,0,0,0.1);">
+              <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                ${item.taskData.line}
+              </span>
+            </div>
+          `;
+        }}
       >
-        <Selection mode="multiple" showCheckBoxesMode="always" />
-        <Scrolling mode="standard" />
+        {/*Các cột hiển thị bên trái*/}
+        <Column dataField="id" caption="PRI Line" width={80} alignment="center" />
+        <Column dataField="line" caption="STYLE / LINE" width={180} />
+        <Column dataField="lineType" caption="Line Type" width={90} />
 
-        {/* NHÓM CỘT CỐ ĐỊNH BÊN TRÁI */}
-        <Column dataField="PRI Line" caption="PRI Line" width={100} alignment="center" fixed />
-        <Column dataField="line" caption="LINE" width={100} fixed />
-        <Column dataField="lineType" caption="Line Type" width={120} fixed />
+        {/* Binding dữ liệu */}
+        <Tasks dataSource={ganttData.tasks} />
+        <Resources dataSource={ganttData.resources} />
+        <ResourceAssignments dataSource={ganttData.assignments} />
 
-        {/* SINH TỰ ĐỘNG 10 CỘT NGÀY (date1 -> date10) */}
-        {[...Array(10)].map((_, i) => (
-          <Column
-            key={i}
-            caption={`date${i + 1}`}
-            width={100}
-            cellRender={(d) => renderTimelineCell(d, i + 1)}
-            alignment="center"
-          />
-        ))}
-      </DataGrid>
+        <Toolbar>
+          <Item name="zoomIn" />
+          <Item name="zoomOut" />
+          <Item name="fullScreen" />
+        </Toolbar>
+
+        <Editing enabled={true} allowTaskUpdating={true} />
+        <Validation autoUpdateParentTasks={true} />
+      </Gantt>
     </div>
   );
 }

@@ -1,7 +1,6 @@
 // src/pages/tasks/Tasks.tsx
 import React, { useState } from 'react';
 import './tasks.scss';
-
 import { OrdersTable } from './components/OrdersTable';
 import { PlanningTable } from './components/PlanningTable';
 

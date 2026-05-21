@@ -28,7 +28,7 @@ export function OrdersTable({ onSelectOrder }: Props) {
       daysToAdd = 19;
     } else if (notes.includes('Print/EMB')) {
       daysToAdd = 12;
-    }
+    } 
 
     etaDate.setDate(etaDate.getDate() + daysToAdd);
     return etaDate;
@@ -45,6 +45,7 @@ export function OrdersTable({ onSelectOrder }: Props) {
         wordWrapEnabled
         onRowClick={(e) => onSelectOrder?.(e.data)}
       >
+
         <Scrolling mode="standard" showScrollbar="always" />
         <FilterRow visible />
         <HeaderFilter visible />
@@ -71,8 +72,11 @@ export function OrdersTable({ onSelectOrder }: Props) {
             format="#,##0" 
             width={120} 
           />
+          <Column dataField="balqty" caption="Bal Qty" width={160} />
+          <Column dataField="smv" caption="SMV" width={160} />
+          <Column dataField="category" caption="Category" width={160} />
           <Column dataField="productType" caption="Product Type" width={160} />
-          <Column dataField="specialNotes" caption="Special Notes" width={200} />
+          <Column dataField="specialNotes" caption="Special Notes" width={160} />
         </Column>
 
         {/* CÁC CỘT TÌNH TRẠNG NGUYÊN PHỤ LIỆU */}
@@ -97,6 +101,7 @@ export function OrdersTable({ onSelectOrder }: Props) {
             format="dd/MM/yyyy" 
             width={120} 
           />
+
           <Column
             caption="Earliest Line Start"
             calculateCellValue={calculateEarliestStart}
@@ -114,7 +119,7 @@ export function OrdersTable({ onSelectOrder }: Props) {
           fixed={true}
           fixedPosition="right" 
           width={170}
-          alignment="center"
+          alignment="left"
           cellRender={(data: any) => {
             const value = data.value || '';
             let statusClass = "status-notyet";
@@ -122,8 +127,10 @@ export function OrdersTable({ onSelectOrder }: Props) {
             // Logic chọn Class dựa trên giá trị dữ liệu
             if (value === 'Already have') {
               statusClass = "status-already";
+
             } else if (value.includes('Partial')) {
               statusClass = "status-partial";
+
             } else if (value === 'Not yet have') {
               statusClass = "status-notyet";
             }
